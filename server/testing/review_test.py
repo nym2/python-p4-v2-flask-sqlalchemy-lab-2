@@ -1,7 +1,6 @@
 from app import app, db
 from server.models import Customer, Item, Review
 
-
 class TestReview:
     '''Review model in models.py'''
 
@@ -20,9 +19,22 @@ class TestReview:
         '''can be added to a transaction and committed to review table with comment column.'''
         with app.app_context():
             assert 'comment' in Review.__table__.columns
-            r = Review(comment='great!')
+            
+            # Create Customer and Item instances to associate with the Review
+            c = Customer(name="John Doe")
+            i = Item(name="Product A", price=19.99)
+            
+            # Add Customer and Item to the session
+            db.session.add_all([c, i])
+            db.session.commit()
+
+            # Now create the Review instance, passing the Customer and Item
+            r = Review(comment='great!', customer=c, item=i)
+            
+            # Add the review to the session and commit it
             db.session.add(r)
             db.session.commit()
+            
             assert hasattr(r, 'id')
             assert db.session.query(Review).filter_by(id=r.id).first()
 
@@ -32,12 +44,18 @@ class TestReview:
             assert 'customer_id' in Review.__table__.columns
             assert 'item_id' in Review.__table__.columns
 
-            c = Customer()
-            i = Item()
+            # Create Customer and Item instances
+            c = Customer(name="Jane Doe")
+            i = Item(name="Product B", price=29.99)
+            
+            # Add Customer and Item to the session
             db.session.add_all([c, i])
             db.session.commit()
 
+            # Create Review instance, passing the Customer and Item
             r = Review(comment='great!', customer=c, item=i)
+            
+            # Add the review to the session and commit it
             db.session.add(r)
             db.session.commit()
 
